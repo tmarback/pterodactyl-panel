@@ -40,16 +40,20 @@ if [ -f /etc/nginx/http.d/panel.conf ]; then
   fi
 else
   echo "Checking if letsencrypt email is set."
-  if [ -z $LE_EMAIL ]; then
-    echo "No letsencrypt email is set using http config."
-    cp .github/docker/default.conf /etc/nginx/http.d/panel.conf
-  else
+  if [ ! -z $LE_EMAIL ]; then
+    echo "Using letsencrypt"
     echo "writing ssl config"
-    cp .github/docker/default_ssl.conf /etc/nginx/http.d/panel.conf
+    cp .github/docker/default_ssl_le.conf /etc/nginx/http.d/panel.conf
     echo "updating ssl config for domain"
     sed -i "s|<domain>|$(echo $APP_URL | sed 's~http[s]*://~~g')|g" /etc/nginx/http.d/panel.conf
     echo "generating certs"
     certbot certonly -d $(echo $APP_URL | sed 's~http[s]*://~~g')  --standalone -m $LE_EMAIL --agree-tos -n
+  elif [ "$HTTPS_ENABLED" == "yes" ]; then
+    echo "Using HTTPS config"
+    cp .github/docker/default_ssl.conf /etc/nginx/http.d/panel.conf
+  else
+    echo "Using HTTP config"
+    cp .github/docker/default.conf /etc/nginx/http.d/panel.conf
   fi
   echo "Removing the default nginx config"
   rm -rf /etc/nginx/http.d/default.conf
