@@ -77,9 +77,5 @@ done
 echo -e "Migrating and Seeding D.B"
 php artisan migrate --seed --force
 
-## start cronjobs for the queue
-echo -e "Starting cron jobs."
-crond -L /var/log/crond -l 5
-
 echo -e "Starting supervisord."
 exec "$@"
