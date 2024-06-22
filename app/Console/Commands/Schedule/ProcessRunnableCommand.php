@@ -28,10 +28,13 @@ class ProcessRunnableCommand extends Command
             ->whereRaw('next_run_at <= NOW()')
             ->get();
 
-        if ($schedules->count() < 1) {
+        $scheduleCount = $schedules->count();
+        if ($scheduleCount < 1) {
             $this->line('There are no scheduled tasks for servers that need to be run.');
 
             return 0;
+        } else {
+            $this->info("Running $scheduleCount schedules");
         }
 
         $bar = $this->output->createProgressBar(count($schedules));
@@ -61,7 +64,9 @@ class ProcessRunnableCommand extends Command
         }
 
         try {
+            $this->comment("Running schedule #$schedule->id ($schedule->name)");
             $this->getLaravel()->make(ProcessScheduleService::class)->handle($schedule);
+            $this->comment("Finished schedule #$schedule->id ($schedule->name)");
 
             $this->line(trans('command/messages.schedule.output_line', [
                 'schedule' => $schedule->name,

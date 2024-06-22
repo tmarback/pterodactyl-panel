@@ -32,7 +32,10 @@ class Kernel extends ConsoleKernel
         $schedule->command('cache:prune-stale-tags')->hourly();
 
         // Execute scheduled commands for servers every minute, as if there was a normal cron running.
-        $schedule->command(ProcessRunnableCommand::class)->everyMinute()->withoutOverlapping();
+        $schedule->command(ProcessRunnableCommand::class)
+                 ->everyMinute()
+                 ->withoutOverlapping()
+                 ->appendOutputTo('/var/log/schedule-process');
         $schedule->command(CleanServiceBackupFilesCommand::class)->daily();
 
         if (config('backups.prune_age')) {
