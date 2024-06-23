@@ -20,6 +20,7 @@ class ProcessRunnableCommand extends Command
      */
     public function handle(): int
     {
+        $this->comment('Fetching pending scheduled tasks...');
         $schedules = Schedule::query()
             ->with('tasks')
             ->whereRelation('server', fn (Builder $builder) => $builder->whereNull('status'))
@@ -30,7 +31,7 @@ class ProcessRunnableCommand extends Command
 
         $scheduleCount = $schedules->count();
         if ($scheduleCount < 1) {
-            $this->line('There are no scheduled tasks for servers that need to be run.');
+            $this->info('There are no scheduled tasks for servers that need to be run.');
 
             return 0;
         } else {
