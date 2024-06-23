@@ -3,7 +3,7 @@ name: Docker
 on:
   push:
     tags:
-      - 'v*-fixed'
+      - 'v*-fixed*'
 
 jobs:
   push:
