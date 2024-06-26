@@ -36,7 +36,7 @@ class Kernel extends ConsoleKernel
         // Execute scheduled commands for servers every minute, as if there was a normal cron running.
         $schedule->command(ProcessRunnableCommand::class)
                  ->everyMinute()
-                 ->withoutOverlapping()
+                 ->withoutOverlapping(10)
                  ->appendOutputTo('/tmp/stdout.fifo');
         $schedule->command(CleanServiceBackupFilesCommand::class)->daily();
 
