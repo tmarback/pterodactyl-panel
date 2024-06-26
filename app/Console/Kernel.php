@@ -29,22 +29,28 @@ class Kernel extends ConsoleKernel
     protected function schedule(Schedule $schedule): void
     {
         // https://laravel.com/docs/10.x/upgrade#redis-cache-tags
-        $schedule->command('cache:prune-stale-tags')->hourly();
+        $schedule->command('cache:prune-stale-tags')
+            ->hourly()
+            ->appendOutputTo('/tmp/stdout.fifo');
 
         // Execute scheduled commands for servers every minute, as if there was a normal cron running.
         $schedule->command(ProcessRunnableCommand::class)
                  ->everyMinute()
                  ->withoutOverlapping()
-                 ->appendOutputTo('/var/log/schedule-process');
+                 ->appendOutputTo('/tmp/stdout.fifo');
         $schedule->command(CleanServiceBackupFilesCommand::class)->daily();
 
         if (config('backups.prune_age')) {
             // Every 30 minutes, run the backup pruning command so that any abandoned backups can be deleted.
-            $schedule->command(PruneOrphanedBackupsCommand::class)->everyThirtyMinutes();
+            $schedule->command(PruneOrphanedBackupsCommand::class)
+                ->everyThirtyMinutes()
+                ->appendOutputTo('/tmp/stdout.fifo');
         }
 
         if (config('activity.prune_days')) {
-            $schedule->command(PruneCommand::class, ['--model' => [ActivityLog::class]])->daily();
+            $schedule->command(PruneCommand::class, ['--model' => [ActivityLog::class]])
+                ->daily()
+                ->appendOutputTo('/tmp/stdout.fifo');
         }
 
         if (config('pterodactyl.telemetry.enabled')) {
